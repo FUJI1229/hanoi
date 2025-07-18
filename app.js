@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const message = document.getElementById('message');
   const moveButton = document.getElementById('moveButton');
   const cursor = document.querySelector('#cursor');
-  const marker = document.querySelector('a-marker[preset="hiro"]');
+  const marker = document.querySelector('a-marker[url="assets/fuji.patt"]');
 
   // ホームボタン追加
   const homeButton = document.createElement('button');
