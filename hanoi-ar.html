@@ -36,6 +36,32 @@
     </style>
   </head>
   <body>
+    <div id="popup" style="
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  color: white;
+  font-size: 20px;
+  text-align: center;
+  padding: 20px;
+  flex-direction: column;
+">
+  <p>カーソルを合わせてディスクをタップしてね</p>
+  <button onclick="closePopup()" style="
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  ">OK</button>
+</div>
     <div id="message"></div>
     <button id="moveButton">選択</button>
     <a-scene
@@ -68,7 +94,11 @@
       </a-entity>
     </a-scene>
 
-    <!-- 外部JSを読み込み -->
+     <script>
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+  }
+</script>
     <script src="app.js"></script>
   </body>
 </html>
