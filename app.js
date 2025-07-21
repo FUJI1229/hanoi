@@ -4,14 +4,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const basePositionX = -0.4;
   const baseY = 0.025;
   const yStep = 0.05;
-
   const message = document.getElementById('message');
   const moveButton = document.getElementById('moveButton');
   const cursor = document.querySelector('#cursor');
   const marker = document.querySelector('a-marker[url="assets/fuji.patt"]');
-
-  // ホームボタン追加
   const homeButton = document.createElement('button');
+  const originalScales = new Map();
   homeButton.id = 'homeButton';
   homeButton.textContent = 'ホーム';
   Object.assign(homeButton.style, {
@@ -32,8 +30,6 @@ window.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'index.html';
   });
   document.body.appendChild(homeButton);
-
-  // SUCCESS表示追加
   const successMessage = document.createElement('div');
   successMessage.id = 'successMessage';
   successMessage.textContent = 'SUCCESS! 🎉';
@@ -52,92 +48,53 @@ window.addEventListener('DOMContentLoaded', () => {
     userSelect: 'none',
   });
   document.body.appendChild(successMessage);
-
   function showSuccess() {
     successMessage.style.display = 'block';
     setTimeout(() => {
       successMessage.style.display = 'none';
     }, 3000);
   }
-
-  function hslToRgb(h, s, l) {
-    // 赤色を除外（h ≈ 345〜15 は赤っぽい）
-    if ((h >= 345 && h <= 360) || (h >= 0 && h <= 15)) {
-      return null;  // または別の色を返す
-    }
-
-    s /= 100;
-    l /= 100;
-    const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = l - c / 2;
-    let r = 0, g = 0, b = 0;
-
-    if (0 <= h && h < 60)
-      [r, g, b] = [c, x, 0];
-    else if (60 <= h && h < 120)
-      [r, g, b] = [x, c, 0];
-    else if (120 <= h && h < 180)
-      [r, g, b] = [0, c, x];
-    else if (180 <= h && h < 240)
-      [r, g, b] = [0, x, c];
-    else if (240 <= h && h < 300)
-      [r, g, b] = [x, 0, c];
-    else
-      [r, g, b] = [c, 0, x];
-
-    return {
-      r: Math.round((r + m) * 255),
-      g: Math.round((g + m) * 255),
-      b: Math.round((b + m) * 255)
-    };
-  }
-
-
-  // 木の色
-  const woodLight = '#d67a50ff';  // base
-  const woodDark = '#d67a50ff';   // ポール
-
-  // base
+  // base読み込みと色の設定
   const baseEntity =
       document.querySelector('a-entity[gltf-model="#baseModel"]');
   baseEntity.addEventListener('model-loaded', () => {
     const mesh = baseEntity.getObject3D('mesh');
     if (!mesh) return;
-
     mesh.traverse(node => {
       if (node.isMesh) {
-        // テクスチャがあれば消す
         if (node.material.map) {
           node.material.map = null;
-          node.material.needsUpdate = true;
         }
-        // 木っぽい色
-        node.material.color.set('#d67a50ff');
+        node.material.color.set('#8B5E3C');
+        node.material.emissive.set('#2C1606');
+        node.material.emissiveIntensity = 0.1;
+        node.material.metalness = 0.0;
+        node.material.roughness = 0.8;
+        node.material.needsUpdate = true;
       }
     });
   });
-
-  // ポールの色
+  // ポールの読み込みと色の設定
   ['#pole1', '#pole2', '#pole3'].forEach(id => {
     const poleEntity = document.querySelector(id);
     poleEntity.addEventListener('model-loaded', () => {
       const mesh = poleEntity.getObject3D('mesh');
       if (!mesh) return;
-
       mesh.traverse(node => {
         if (node.isMesh) {
           if (node.material.map) {
             node.material.map = null;
-            node.material.needsUpdate = true;
           }
-          node.material.color.set('#d67a50ff');
+          node.material.color.set('#8B5E3C');
+          node.material.emissive.set('#2C1606');
+          node.material.emissiveIntensity = 0.1;
+          node.material.metalness = 0.0;
+          node.material.roughness = 0.8;
+          node.material.needsUpdate = true;  //これがないと色が反映されない
         }
       });
     });
   });
- 
-
   for (let i = 0; i < n; i++) {
     const disk = document.createElement('a-entity');
     disk.setAttribute('id', `disk${i + 1}`);
@@ -145,57 +102,55 @@ window.addEventListener('DOMContentLoaded', () => {
     disk.setAttribute('gltf-model', '#diskModel');
     const scaleValue = 0.005 - i * 0.0006;
     disk.setAttribute('scale', `${scaleValue} 0.001 ${scaleValue}`);
+    originalScales.set(
+        `disk${i + 1}`, {x: scaleValue, y: 0.001, z: scaleValue});
     const yPos = baseY + i * yStep;
     disk.setAttribute('position', `${basePositionX} ${yPos} 0`);
-
-    const hue = Math.floor((i / n) * 360);
-    disk.dataset.hue = hue;
-
+    disk.dataset.hue = Math.floor((i / n) * 360);
     marker.appendChild(disk);
   }
-
   const disks = Array.from(document.querySelectorAll('.disk'));
   const originalColors = new Map();
-
-  disks.forEach(disk => {
+  // ディスクの読み込みと色の設定
+  disks.forEach((disk, i) => {
     disk.addEventListener('model-loaded', () => {
       const mesh = disk.getObject3D('mesh');
       if (!mesh) return;
-
-      const hue = disk.dataset.hue || 0;
-      const rgb = hslToRgb(hue, 100, 50);
-      const colorStr = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
-
+      const palette = [
+        '#FF0000', '#FF7F00', '#FFFF00', '#26ff00', '#4bfdfa', '#1119fd',
+        '#8B00FF'
+      ];
+      const colorStr = palette[i];
       mesh.traverse(node => {
         if (node.isMesh) {
           node.material.color.set(colorStr);
+          node.material.emissive.set(colorStr);
+          node.material.emissiveIntensity = 0.1;
+          node.material.metalness = 0.0;
+          node.material.roughness = 0.8;
+          node.material.needsUpdate = true;
           originalColors.set(disk.id, node.material.color.clone());
         }
       });
     });
   });
-
-  function changeDiskColor(entity, color) {
-    const mesh = entity.getObject3D('mesh');
-    if (!mesh) return;
-    mesh.traverse(node => {
-      if (node.isMesh) {
-        node.material.color.set(color);
-      }
+  function changeDiskSize(entity) {
+    const scale = entity.getAttribute('scale');
+    entity.setAttribute('scale', {
+      x: scale.x * 1.2,
+      y: scale.y * 1.2,
+      z: scale.z * 1.2,
     });
   }
-
-  function resetDiskColor(entity) {
-    const mesh = entity.getObject3D('mesh');
-    const originalColor = originalColors.get(entity.id);
-    if (!mesh || !originalColor) return;
-    mesh.traverse(node => {
-      if (node.isMesh) {
-        node.material.color.copy(originalColor);
-      }
+  function resetDiskSize(entity) {
+    const originalScale = originalScales.get(entity.id);
+    if (!originalScale) return;
+    entity.setAttribute('scale', {
+      x: originalScale.x,
+      y: originalScale.y,
+      z: originalScale.z,
     });
   }
-
   function checkSuccess() {
     const polesX = [0, 0.4];
     for (const poleX of polesX) {
@@ -212,30 +167,22 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     return false;
   }
-
   let selectedDisk = null;
   let fromPole = null;
-
   moveButton.addEventListener('click', () => {
     const intersected = cursor.components.raycaster.intersectedEls;
-
     if (!intersected || intersected.length === 0) {
       message.innerText = 'カーソルが物体に当たっていません';
       setTimeout(() => (message.innerText = ''), 2000);
       return;
     }
-
-    // 当たった要素
     const target = intersected.find(
         el => el.classList.contains('pole') || el.classList.contains('disk'));
-
     if (!target) {
       message.innerText = 'ポールまたはディスクを選んでください';
       setTimeout(() => (message.innerText = ''), 2000);
       return;
     }
-
-    // ポールのX座標
     const getPoleXFromTarget = (target) => {
       if (target.classList.contains('pole')) {
         return target.getAttribute('position').x;
@@ -244,10 +191,7 @@ window.addEventListener('DOMContentLoaded', () => {
       }
       return null;
     };
-
     const poleX = getPoleXFromTarget(target);
-
-    // 該当するポール上のディスクを取得
     const disksOnPole = disks
                             .filter(disk => {
                               const pos = disk.getAttribute('position');
@@ -256,53 +200,51 @@ window.addEventListener('DOMContentLoaded', () => {
                             .sort(
                                 (a, b) => b.getAttribute('position').y -
                                     a.getAttribute('position').y);
-
     if (!selectedDisk) {
       if (disksOnPole.length === 0) {
         message.innerText = 'このポールにはディスクがありません';
         setTimeout(() => (message.innerText = ''), 2000);
         return;
       }
-
       selectedDisk = disksOnPole[0];
       fromPole = poleX;
-      changeDiskColor(selectedDisk, 'red');
+      changeDiskSize(selectedDisk);
       message.innerText = `選択: ${selectedDisk.id}`;
+      setTimeout(() => (message.innerText = ''), 10000);
     } else {
       if (Math.abs(fromPole - poleX) < 0.01) {
-        resetDiskColor(selectedDisk);
+        resetDiskSize(selectedDisk);
         message.innerText = '選択をキャンセルしました';
         selectedDisk = null;
         fromPole = null;
         setTimeout(() => (message.innerText = ''), 2000);
         return;
       }
-
       const topDisk = disksOnPole[0];
-      const selectedSize = selectedDisk.getAttribute('scale').x;
-
       if (topDisk) {
-        const topSize = topDisk.getAttribute('scale').x;
+        const selectedOriginalScale = originalScales.get(selectedDisk.id);
+        const topOriginalScale = originalScales.get(topDisk.id);
+        if (!selectedOriginalScale || !topOriginalScale) {
+          console.warn('originalScalesが見つかりません');
+        }
+        const selectedSize = selectedOriginalScale?.x || 0;
+        const topSize = topOriginalScale?.x || 0;
         if (selectedSize > topSize) {
           message.innerText = '小さいディスクの上に大きいディスクは置けません';
-          resetDiskColor(selectedDisk);
+          resetDiskSize(selectedDisk);
           selectedDisk = null;
           fromPole = null;
           setTimeout(() => (message.innerText = ''), 2000);
           return;
         }
       }
-
       const newY = baseY + disksOnPole.length * yStep;
       selectedDisk.setAttribute('position', {x: poleX, y: newY, z: 0});
-      resetDiskColor(selectedDisk);
+      resetDiskSize(selectedDisk);
       message.innerText = `${selectedDisk.id} を移動しました`;
-
       selectedDisk = null;
       fromPole = null;
-
       checkSuccess();
-
       setTimeout(() => {
         message.innerText = '';
       }, 2000);

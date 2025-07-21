@@ -84,15 +84,30 @@
   <a-entity id="pole2" class="pole clickable" gltf-model="#poleModel" scale="0.005 0.005 0.005" position="0 0 0"></a-entity>
   <a-entity id="pole3" class="pole clickable" gltf-model="#poleModel" scale="0.005 0.005 0.005" position="0.4 0 0"></a-entity>
 </a-marker>
+<a-entity camera>
+  <!-- 実際にクリック処理を行う透明なカーソル -->
+  <a-cursor 
+    id="cursor"
+    fuse="false"
+    raycaster="objects: .clickable"
+    material="opacity: 0"
+    geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.002"
+  ></a-cursor>
 
+  <!-- 十字カーソルの縦線 -->
+  <a-entity 
+    position="0 0 -1"
+    geometry="primitive: box; height: 0.04; width: 0.002; depth: 0.001"
+    material="color: white; shader: flat"
+  ></a-entity>
 
-      <a-entity camera>
-        <a-cursor 
-          fuse="false" 
-          raycaster="objects: .clickable" 
-          id="cursor">
-        </a-cursor>
-      </a-entity>
+  <!-- 十字カーソルの横線 -->
+  <a-entity 
+    position="0 0 -1"
+    geometry="primitive: box; height: 0.002; width: 0.04; depth: 0.001"
+    material="color: white; shader: flat"
+  ></a-entity>
+</a-entity>
     </a-scene>
 
      <script>
