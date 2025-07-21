@@ -2,8 +2,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const n = parseInt(urlParams.get('disks')) || 5;
   const basePositionX = -0.4;
-  const baseY = 0.025;
-  const yStep = 0.05;
+  const baseY = 0.08;
+  const yStep = 0.08;
   const message = document.getElementById('message');
   const moveButton = document.getElementById('moveButton');
   const cursor = document.querySelector('#cursor');
@@ -95,16 +95,17 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
   });
+  // ディスクの生成
   for (let i = 0; i < n; i++) {
     const disk = document.createElement('a-entity');
     disk.setAttribute('id', `disk${i + 1}`);
     disk.setAttribute('class', 'disk clickable');
     disk.setAttribute('gltf-model', '#diskModel');
-    const scaleValue = 0.005 - i * 0.0006;
+    const scaleValue = 0.05 - i * 0.0055;
     disk.setAttribute('scale', `${scaleValue} 0.001 ${scaleValue}`);
     originalScales.set(
         `disk${i + 1}`, {x: scaleValue, y: 0.001, z: scaleValue});
-    const yPos = baseY + i * yStep;
+    const yPos = baseY + i * yStep - 0.02 * i;
     disk.setAttribute('position', `${basePositionX} ${yPos} 0`);
     disk.dataset.hue = Math.floor((i / n) * 360);
     marker.appendChild(disk);
