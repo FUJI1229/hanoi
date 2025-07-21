@@ -61,12 +61,18 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function hslToRgb(h, s, l) {
+    // 赤色を除外（h ≈ 345〜15 は赤っぽい）
+    if ((h >= 345 && h <= 360) || (h >= 0 && h <= 15)) {
+      return null;  // または別の色を返す
+    }
+
     s /= 100;
     l /= 100;
     const c = (1 - Math.abs(2 * l - 1)) * s;
     const x = c * (1 - Math.abs((h / 60) % 2 - 1));
     const m = l - c / 2;
     let r = 0, g = 0, b = 0;
+
     if (0 <= h && h < 60)
       [r, g, b] = [c, x, 0];
     else if (60 <= h && h < 120)
@@ -79,6 +85,7 @@ window.addEventListener('DOMContentLoaded', () => {
       [r, g, b] = [x, 0, c];
     else
       [r, g, b] = [c, 0, x];
+
     return {
       r: Math.round((r + m) * 255),
       g: Math.round((g + m) * 255),
@@ -86,11 +93,12 @@ window.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // 木の色設定（ここから追加部分）
-  const woodLight = '#A0522D';  // base用ライトブラウン
-  const woodDark = '#654321';   // ポール用ダークブラウン
 
-  // baseの色変更
+  // 木の色
+  const woodLight = '#d67a50ff';  // base
+  const woodDark = '#d67a50ff';   // ポール
+
+  // base
   const baseEntity =
       document.querySelector('a-entity[gltf-model="#baseModel"]');
   baseEntity.addEventListener('model-loaded', () => {
@@ -104,13 +112,13 @@ window.addEventListener('DOMContentLoaded', () => {
           node.material.map = null;
           node.material.needsUpdate = true;
         }
-        // 木っぽい色をセット（Sienna系）
-        node.material.color.set('#A0522D');
+        // 木っぽい色
+        node.material.color.set('#d67a50ff');
       }
     });
   });
 
-  // ポール3本の色を濃いブラウンに変更
+  // ポールの色
   ['#pole1', '#pole2', '#pole3'].forEach(id => {
     const poleEntity = document.querySelector(id);
     poleEntity.addEventListener('model-loaded', () => {
@@ -123,14 +131,13 @@ window.addEventListener('DOMContentLoaded', () => {
             node.material.map = null;
             node.material.needsUpdate = true;
           }
-          node.material.color.set('#654321');
+          node.material.color.set('#d67a50ff');
         }
       });
     });
   });
-  // 木の色設定（ここまで追加部分）
+ 
 
-  // ディスク生成
   for (let i = 0; i < n; i++) {
     const disk = document.createElement('a-entity');
     disk.setAttribute('id', `disk${i + 1}`);
@@ -218,7 +225,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // ポールまたはディスクのいずれかに当たった要素を取得
+    // 当たった要素
     const target = intersected.find(
         el => el.classList.contains('pole') || el.classList.contains('disk'));
 
@@ -228,7 +235,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // ポールのX座標を取得するための共通処理
+    // ポールのX座標
     const getPoleXFromTarget = (target) => {
       if (target.classList.contains('pole')) {
         return target.getAttribute('position').x;
