@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
     position: 'fixed',
     left: '10px',
     bottom: '20px',
-    padding: '10px 12px',
+    padding: '20px 24px',
     fontSize: '16px',
     fontWeight: 'bold',
     backgroundColor: '#2196F3',
